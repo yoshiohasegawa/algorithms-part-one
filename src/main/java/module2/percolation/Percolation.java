@@ -331,6 +331,90 @@ public class Percolation {
             System.out.println("Empty");
         }
         System.out.println();
+
+        System.out.println("---------------------------");
+        System.out.println();
+
+        System.out.println("New, bigger Percolation instance");
+        int m = 4;
+        Percolation biggerP = new Percolation(m);
+
+        System.out.println();
+        biggerP.print();
+
+        // Total number of components
+        System.out.println("Number of components: " + biggerP.qu.count());
+        System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
+        System.out.println("Percolates: " + biggerP.percolates());
+        System.out.println();
+
+        System.out.println("---------------------------");
+        System.out.println();
+
+        System.out.println("Opening site [1, 1]...");
+        biggerP.open(1, 1);
+
+        System.out.println();
+        biggerP.print();
+
+        System.out.println("Number of components: " + biggerP.qu.count());
+        System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
+        System.out.println("Percolates: " + biggerP.percolates());
+        System.out.println();
+
+        System.out.println("---------------------------");
+        System.out.println();
+
+        System.out.println("Opening site [2, 1]...");
+        biggerP.open(2, 1);
+
+        System.out.println();
+        biggerP.print();
+
+        System.out.println("Number of components: " + biggerP.qu.count());
+        System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
+        System.out.println("Percolates: " + biggerP.percolates());
+        System.out.println();
+
+        System.out.println("---------------------------");
+        System.out.println();
+
+        System.out.println("Opening site [3, 1]...");
+        biggerP.open(3, 1);
+
+        System.out.println();
+        biggerP.print();
+
+        System.out.println("Number of components: " + biggerP.qu.count());
+        System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
+        System.out.println("Percolates: " + biggerP.percolates());
+        System.out.println();
+
+        System.out.println("---------------------------");
+        System.out.println();
+
+        System.out.println("Opening site [4, 1]...");
+        biggerP.open(4, 1);
+
+        System.out.println();
+        biggerP.print();
+
+        System.out.println("Number of components: " + biggerP.qu.count());
+        System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
+        System.out.println("Percolates: " + biggerP.percolates());
+        System.out.println();
+
+        System.out.println("---------------------------");
+        System.out.println();
+
+        System.out.println("Opening site [4, 3]...");
+        biggerP.open(4, 3);
+
+        System.out.println();
+        biggerP.print();
+
+        // TODO, fix this backwash problem...
+        System.out.println("Is [4, 3] full?: " + biggerP.isFull(4, 3));
     }
 }
     
