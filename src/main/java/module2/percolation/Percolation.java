@@ -38,36 +38,46 @@ public class Percolation {
             throw new IllegalArgumentException("Index out of bounds");
         }
 
+        // Get the index for the vacancy grid
         int x = row - 1;
         int y = col - 1;
-        
+
         // Open the site in the Vacancy Grid
         this.vacancyGrid[x][y] = true;
 
-        // Get the Quick Union index of the site in question
-        int idx = this.idxGrid[x][y];
-        // Union the site with the above site, if available
-        if (row - 1 != 0){
+        // Get the WeightedQuickUnionUF index for [row, col]
+        int idx = (row - 1) * this.size + (col - 1) + 1;
+
+        // Union the site with the top site, if available
+        if (row > 1){
             if (this.isOpen(row - 1, col)) {
-                this.qu.union(idx, this.idxGrid[x - 1][y]);
+                // Get the WeightedQuickUnionUF index for top neighbor
+                int top = (row - 2) * this.size + (col - 1) + 1;
+                this.qu.union(idx, top);
             }
         }
         // Union the site with the right site, if available
-        if (col + 1 != this.size + 1){
+        if (col < this.size){
             if (this.isOpen(row, col + 1)) {
-                this.qu.union(idx, this.idxGrid[x][y + 1]);
+                // Get the WeightedQuickUnionUF index for right neighbor
+                int right = (row - 1) * this.size + (col) + 1;
+                this.qu.union(idx, right);
             }
         }
         // Union the site with the bottom site, if available
-        if (row + 1 != this.size + 1){
+        if (row < this.size){
             if (this.isOpen(row + 1, col)) {
-                this.qu.union(idx, this.idxGrid[x + 1][y]);
+                // Get the WeightedQuickUnionUF index for bottom neighbor
+                int bottom = (row) * this.size + (col - 1) + 1;
+                this.qu.union(idx, bottom);
             }
         }
         // Union the site with the left site, if available
-        if (col - 1 != 0){
+        if (col > 1){
             if (this.isOpen(row, col - 1)) {
-                this.qu.union(idx, this.idxGrid[x][y - 1]);
+                // Get the WeightedQuickUnionUF index for left neighbor
+                int left = (row - 1) * this.size + (col - 2) + 1;
+                this.qu.union(idx, left);
             }
         }
     }
@@ -78,8 +88,10 @@ public class Percolation {
             throw new IllegalArgumentException("Index out of bounds");
         }
 
+        // Get the index for the vacancy grid
         int x = row - 1;
         int y = col - 1;
+
         return this.vacancyGrid[x][y];
     }
 
@@ -96,41 +108,17 @@ public class Percolation {
         // Base case; the above site is open
         if (this.isOpen(row - 1, col)) return true;
 
-        // Store initial col value
-        int initCol = col;
+        // Get the WeightedQuickUnionUF index for [row, col]
+        int idx = (row - 1) * this.size + (col - 1) + 1;
 
-        // Walk down the left sites
-        while (col - 1 > 0) {
-            // Check if left site is open
-            if (this.isOpen(row, col - 1)) {
-                // Return true if the site above the left is open
-                if (this.isOpen(row - 1, col - 1)) return true;
-                // Continue left
-                col--;
-            } else break;
-        }
-        
-        // Reset col to original value
-        col = initCol;
-        
-        // Walk down the right sites
-        while (col + 1 <= this.size) {
-            // Check if the right site is open
-            if (this.isOpen(row, col + 1)) {
-                // Return true if the site above the right is open
-                if ((this.isOpen(row - 1, col + 1))) return true;
-                // Continue right
-                col++;
-            } else break;
-            
-        }
-
-        return false;
+        // The site is full if it is connected to the virtual top
+        return this.qu.find(idx) == this.qu.find(0);
     }
 
     // returns the number of open sites
     public int numberOfOpenSites() {
         int count = 0;
+        // Count the number of open sites found in the vacancy grid
         for (int i = 0; i < this.size; i++) {
             for (int j = 0; j < this.size; j++) {
                  if (this.vacancyGrid[i][j]) count++;
