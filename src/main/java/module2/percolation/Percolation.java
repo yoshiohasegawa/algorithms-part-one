@@ -32,6 +32,18 @@ public class Percolation {
         }
     }
 
+    // This is a private help method to connect a site to it's neighbors upon calling `open()`
+    private void tryConnect(int row, int col, int nRow, int nCol) {
+        // Get the WeightedQuickUnionUF index for [row, col]
+        int idx = (row - 1) * this.size + (col - 1) + 1;
+
+        if (this.isOpen(nRow, nCol)) {
+            // Get the WeightedQuickUnionUF index for the neighbor
+                int neighbor = (nRow - 1) * this.size + (nCol - 1) + 1;
+                this.qu.union(idx, neighbor);
+        }
+    }
+
     // opens the site (row, col) if it is not open already
     public void open(int row, int col) {
         if (row < 1 || row > this.size || col < 1 || col > this.size) {
@@ -45,40 +57,22 @@ public class Percolation {
         // Open the site in the Vacancy Grid
         this.vacancyGrid[x][y] = true;
 
-        // Get the WeightedQuickUnionUF index for [row, col]
-        int idx = (row - 1) * this.size + (col - 1) + 1;
-
-        // Union the site with the top site, if available
+        // Try connecting the site to it's neighbors
+        // Top neighbor
         if (row > 1){
-            if (this.isOpen(row - 1, col)) {
-                // Get the WeightedQuickUnionUF index for top neighbor
-                int top = (row - 2) * this.size + (col - 1) + 1;
-                this.qu.union(idx, top);
-            }
+            this.tryConnect(row, col, row - 1, col);
         }
-        // Union the site with the right site, if available
+        // Right neighbor
         if (col < this.size){
-            if (this.isOpen(row, col + 1)) {
-                // Get the WeightedQuickUnionUF index for right neighbor
-                int right = (row - 1) * this.size + (col) + 1;
-                this.qu.union(idx, right);
-            }
+            this.tryConnect(row, col, row, col + 1);
         }
-        // Union the site with the bottom site, if available
+        // Bottom neighbor
         if (row < this.size){
-            if (this.isOpen(row + 1, col)) {
-                // Get the WeightedQuickUnionUF index for bottom neighbor
-                int bottom = (row) * this.size + (col - 1) + 1;
-                this.qu.union(idx, bottom);
-            }
+            this.tryConnect(row, col, row + 1, col);
         }
-        // Union the site with the left site, if available
+        // Left neighbor
         if (col > 1){
-            if (this.isOpen(row, col - 1)) {
-                // Get the WeightedQuickUnionUF index for left neighbor
-                int left = (row - 1) * this.size + (col - 2) + 1;
-                this.qu.union(idx, left);
-            }
+            this.tryConnect(row, col, row, col - 1);
         }
     }
 
