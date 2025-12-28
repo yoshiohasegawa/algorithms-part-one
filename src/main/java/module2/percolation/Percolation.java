@@ -1,11 +1,15 @@
-import edu.princeton.cs.algs4.StdRandom;
-import edu.princeton.cs.algs4.StdStats;
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
+    // Grid to hold the indices of WeightedQuickUnionUF objects
     private int[][] idxGrid;
+    // Grid to hold the vacancy status of each site
     private boolean[][] vacancyGrid;
-    public WeightedQuickUnionUF qu;
+    // WeightedQuickUnionUF object to determine percolation
+    private WeightedQuickUnionUF percolationQU;
+    // WeightedQuickUnionUF object to determine fullness
+    private WeightedQuickUnionUF fullnessQU;
+    // size of the grid
     private int size;
     
     // creates n-by-n grid, with all sites initially blocked
@@ -25,14 +29,11 @@ public class Percolation {
             }
         }
 
-        this.qu = new WeightedQuickUnionUF((n * n) + 2);
-        for (int i = 0; i < n; i++){
-            this.qu.union(0, i + 1);
-            this.qu.union((n * n) + 1, (n * n) - i);
-        }
+        this.percolationQU = new WeightedQuickUnionUF((n * n) + 2);
+        this.fullnessQU = new WeightedQuickUnionUF((n * n) + 1);
     }
 
-    // This is a private help method to connect a site to it's neighbors upon calling `open()`
+    // This is a private help method to connect a site to its neighbors upon calling `open()`
     private void tryConnect(int row, int col, int nRow, int nCol) {
         // Get the WeightedQuickUnionUF index for [row, col]
         int idx = (row - 1) * this.size + (col - 1) + 1;
@@ -40,11 +41,12 @@ public class Percolation {
         if (this.isOpen(nRow, nCol)) {
             // Get the WeightedQuickUnionUF index for the neighbor
                 int neighbor = (nRow - 1) * this.size + (nCol - 1) + 1;
-                this.qu.union(idx, neighbor);
+                this.percolationQU.union(idx, neighbor);
+                this.fullnessQU.union(idx, neighbor);
         }
     }
 
-    // opens the site (row, col) if it is not open already
+    // Opens the site (row, col) if it is not open already
     public void open(int row, int col) {
         if (row < 1 || row > this.size || col < 1 || col > this.size) {
             throw new IllegalArgumentException("Index out of bounds");
@@ -54,23 +56,39 @@ public class Percolation {
         int x = row - 1;
         int y = col - 1;
 
-        // Open the site in the Vacancy Grid
+        // Open the site in the Vacancy Grid, if not already open
+        if (this.vacancyGrid[x][y]) return; // Site is already open
         this.vacancyGrid[x][y] = true;
 
-        // Try connecting the site to it's neighbors
-        // Top neighbor
+        // If the site is in the top row, connect it to the virtual top
+        if (row == 1) {
+            int idx = (col - 1) + 1; // Note, row is always 1 here
+            // Connect in both percolation and fullness UF structures
+            this.percolationQU.union(idx, 0);
+            this.fullnessQU.union(idx, 0);
+        }
+        // If the site is in the bottom row, connect it to the virtual bottom
+        if (row == this.size) {
+            int idx = (row - 1) * this.size + (col - 1) + 1;
+            // Connect only in the percolation UF structure
+            this.percolationQU.union(idx, (this.size * this.size) + 1);
+        }
+
+
+        // Try connecting the site to its neighbors
+        // Top neighbor, if available
         if (row > 1){
             this.tryConnect(row, col, row - 1, col);
         }
-        // Right neighbor
+        // Right neighbor, if available
         if (col < this.size){
             this.tryConnect(row, col, row, col + 1);
         }
-        // Bottom neighbor
+        // Bottom neighbor, if available
         if (row < this.size){
             this.tryConnect(row, col, row + 1, col);
         }
-        // Left neighbor
+        // Left neighbor, if available
         if (col > 1){
             this.tryConnect(row, col, row, col - 1);
         }
@@ -105,8 +123,9 @@ public class Percolation {
         // Get the WeightedQuickUnionUF index for [row, col]
         int idx = (row - 1) * this.size + (col - 1) + 1;
 
-        // The site is full if it is connected to the virtual top
-        return this.qu.find(idx) == this.qu.find(0);
+        // The site is full if it is connected to
+        // the virtual top in the fullness UF structure
+        return this.fullnessQU.find(idx) == this.fullnessQU.find(0);
     }
 
     // returns the number of open sites
@@ -123,7 +142,9 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
-        return this.qu.find(0) == this.qu.find(((this.size * this.size) + 1));
+        // The system percolates if the virtual top is connected
+        // to the virtual bottom in the percolation UF structure
+        return this.percolationQU.find(0) == this.percolationQU.find(((this.size * this.size) + 1));
     }
 
     // Print the grid to standard output
@@ -164,8 +185,8 @@ public class Percolation {
         int count = 1;
         for (int i = 1; i <= this.size; i++){
             for (int j = 1; j <= this.size; j++) {
-                int parent = this.qu.find(count);
-                System.out.print(this.qu.find(count));
+                int parent = this.percolationQU.find(count);
+                System.out.print(this.percolationQU.find(count));
                 if (parent < 10) {
                     System.out.print("   ");
                 } else if (parent < 100) {
@@ -188,8 +209,6 @@ public class Percolation {
         System.out.println();
         p.print();
 
-        // Total number of components
-        System.out.println("Number of components: " + p.qu.count());
         System.out.println("Number of open sites: " + p.numberOfOpenSites());
         System.out.println("Percolates: " + p.percolates());
         System.out.println();
@@ -203,7 +222,6 @@ public class Percolation {
         System.out.println();
         p.print();
 
-        System.out.println("Number of components: " + p.qu.count());
         System.out.println("Number of open sites: " + p.numberOfOpenSites());
         System.out.println("Percolates: " + p.percolates());
         System.out.println();
@@ -217,7 +235,6 @@ public class Percolation {
         System.out.println();
         p.print();
 
-        System.out.println("Number of components: " + p.qu.count());
         System.out.println("Number of open sites: " + p.numberOfOpenSites());
         System.out.println("Percolates: " + p.percolates());
         System.out.println();
@@ -231,7 +248,6 @@ public class Percolation {
         System.out.println();
         p.print();
 
-        System.out.println("Number of components: " + p.qu.count());
         System.out.println("Number of open sites: " + p.numberOfOpenSites());
         System.out.println("Percolates: " + p.percolates());
         System.out.println();
@@ -245,7 +261,6 @@ public class Percolation {
         System.out.println();
         p.print();
 
-        System.out.println("Number of components: " + p.qu.count());
         System.out.println("Number of open sites: " + p.numberOfOpenSites());
         System.out.println("Percolates: " + p.percolates());
         System.out.println();
@@ -259,7 +274,6 @@ public class Percolation {
         System.out.println();
         p.print();
 
-        System.out.println("Number of components: " + p.qu.count());
         System.out.println("Number of open sites: " + p.numberOfOpenSites());
         System.out.println("Percolates: " + p.percolates());
         System.out.println();
@@ -342,8 +356,6 @@ public class Percolation {
         System.out.println();
         biggerP.print();
 
-        // Total number of components
-        System.out.println("Number of components: " + biggerP.qu.count());
         System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
         System.out.println("Percolates: " + biggerP.percolates());
         System.out.println();
@@ -357,7 +369,6 @@ public class Percolation {
         System.out.println();
         biggerP.print();
 
-        System.out.println("Number of components: " + biggerP.qu.count());
         System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
         System.out.println("Percolates: " + biggerP.percolates());
         System.out.println();
@@ -371,7 +382,6 @@ public class Percolation {
         System.out.println();
         biggerP.print();
 
-        System.out.println("Number of components: " + biggerP.qu.count());
         System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
         System.out.println("Percolates: " + biggerP.percolates());
         System.out.println();
@@ -385,7 +395,6 @@ public class Percolation {
         System.out.println();
         biggerP.print();
 
-        System.out.println("Number of components: " + biggerP.qu.count());
         System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
         System.out.println("Percolates: " + biggerP.percolates());
         System.out.println();
@@ -399,7 +408,6 @@ public class Percolation {
         System.out.println();
         biggerP.print();
 
-        System.out.println("Number of components: " + biggerP.qu.count());
         System.out.println("Number of open sites: " + biggerP.numberOfOpenSites());
         System.out.println("Percolates: " + biggerP.percolates());
         System.out.println();
@@ -413,7 +421,6 @@ public class Percolation {
         System.out.println();
         biggerP.print();
 
-        // TODO, fix this backwash problem...
         System.out.println("Is [4, 3] full?: " + biggerP.isFull(4, 3));
     }
 }
