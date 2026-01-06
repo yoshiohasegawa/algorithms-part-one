@@ -117,8 +117,6 @@ public class Percolation {
         if (!this.isOpen(row, col)) return false;
         // Base case; we are at the top row
         if (row == 1) return true;
-        // Base case; the above site is open
-        if (this.isOpen(row - 1, col)) return true;
 
         // Get the WeightedQuickUnionUF index for [row, col]
         int idx = (row - 1) * this.size + (col - 1) + 1;
