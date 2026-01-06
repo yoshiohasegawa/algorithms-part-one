@@ -77,19 +77,19 @@ public class Percolation {
 
         // Try connecting the site to its neighbors
         // Top neighbor, if available
-        if (row > 1){
+        if (row > 1) {
             this.tryConnect(row, col, row - 1, col);
         }
         // Right neighbor, if available
-        if (col < this.size){
+        if (col < this.size) { 
             this.tryConnect(row, col, row, col + 1);
         }
         // Bottom neighbor, if available
-        if (row < this.size){
+        if (row < this.size) {
             this.tryConnect(row, col, row + 1, col);
         }
         // Left neighbor, if available
-        if (col > 1){
+        if (col > 1) {
             this.tryConnect(row, col, row, col - 1);
         }
     }

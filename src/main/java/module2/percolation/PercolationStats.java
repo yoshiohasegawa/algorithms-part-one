@@ -3,9 +3,9 @@ import edu.princeton.cs.algs4.StdStats;
 import edu.princeton.cs.algs4.StdOut;
 
 public class PercolationStats {
+    private static final double CONFIDENCE_95 = 1.96;
     private int trials;
     private double[] thresholds;
-    private static final double CONFIDENCE_95 = 1.96;
 
 
     // perform independent trials on an n-by-n grid
@@ -29,7 +29,7 @@ public class PercolationStats {
     private int runTrial(int n) {
         Percolation trialPerc = new Percolation(n);
 
-        while (trialPerc.percolates() == false) {
+        while (!trialPerc.percolates()) {
             int randRow = StdRandom.uniformInt(n) + 1;
             int randCol = StdRandom.uniformInt(n) + 1;
             trialPerc.open(randRow, randCol);
